@@ -7,7 +7,7 @@ Each term is generated using this grammar in BNF form:
 
 ```
 <start> ::= "(" <term> ")"
-<term> ::= <literal> | <literal> <connective> <literal> | <literal> <connective> "(" <term> ")" | "(NOT " <term> ")" 
+<term> ::= <literal> | <literal> <connective> <literal> | <literal> <connective> "(" <term> ")" | "NOT" "(" <term> ")" 
 <literal> ::= "variable" | "(NOT variable)"
 <connective> ::= " AND " | " OR " 
 ```

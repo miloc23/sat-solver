@@ -2,7 +2,8 @@
  * Recursive descent parser to recognize input language for the SAT solver
  */
 
-#include<stdio.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 #ifdef DEBUG
 #define debug_print(s) printf s ;
@@ -10,15 +11,19 @@
 #define debug_print(s) do { } while (0);
 #endif
 
+bool error = false;
+bool end_of_stream = false;
 
-enum Symbol {lparen, rparen, variable, and, or, not};
-char * sym_name[] = {"lparen", "rparen", "variable", "and", "or", "not"};
+enum Symbol {lparen, rparen, variable, and, or, not, end, startsym};
+char * sym_name[] = {"lparen", "rparen", "variable", "and", "or", "not", "end", "start"};
 char variable_name[256] = {'\0'};
 
 
-enum Symbol sym;
-char  input[] = "(X AND Y)";
-char * cursor = input;
+enum Symbol sym = startsym;
+//char  input[] = "(NOT ((NOT X) AND Y))";
+//char input[] = "(X AND Y)";
+char * input;
+char * cursor;
 char next_token[256] = {'\0'};
 
 int count = 0;
@@ -26,20 +31,25 @@ enum Symbol tokens[] = {lparen, not, variable, and, lparen, variable, or, variab
 
 void skip_whitespace()
 {
-    
-    while (*cursor == ' ') {
+    while (*cursor == ' ' && *cursor != '\0') {
         cursor++;
     }
 }
-void nextsym()
+
+bool nextsym()
 {
-    debug_print(("Input is %s\n", cursor));
+    //debug_print(("Input is %s\n", cursor));
     // Make sure the cursor is not NULL/at the end of the string
     if (*cursor == '\0') {
-        debug_print(("Error in parsing\n"));
+        sym = end;
+        //if (end_of_stream) {
+        //    error = true;
+        //}
+        //else {
+        //    end_of_stream = true;
+        //}
     }
-
-    if (*cursor == '(') {
+    else if (*cursor == '(') {
         sym = lparen;
         cursor++;
     }
@@ -73,12 +83,14 @@ void nextsym()
         variable_name[idx] = '\0';
         //printf("Variable name %s\n", variable_name);
     }
+    debug_print(("sym: %s\t Cursor is %s\n", sym_name[sym], cursor));
     skip_whitespace();
 
-    debug_print(("Symbol is %s\n", sym_name[sym]));
+    //debug_print(("Symbol is %s\n", sym_name[sym]));
     if (sym == variable) {
-        debug_print(("Variable name %s\n", variable_name));
+        //debug_print(("Variable name %s\n", variable_name));
     }
+    return true;
 }
 
 /*
@@ -95,11 +107,11 @@ int accept(enum Symbol esym)
 
 int expect(enum Symbol esym)
 {
-
     if (accept(esym)) {
         return 1;
     }
-    debug_print(("Error\n"));
+    //debug_print(("Error\n"));
+    error = true;
     return 0;
     
 }
@@ -111,16 +123,17 @@ void connective()
     else if (accept(or))
        ;
     else {
-        debug_print(("Error\n"));
+        //debug_print(("Error\n"));
     }
 }
 
 
 void literal()
 {
-    if (accept(not)) {
-        debug_print(("Negation\n"));
+    if (accept(lparen)) {
+        expect(not);
         expect(variable);
+        expect(rparen);
     }
     else {
         expect(variable);
@@ -129,9 +142,16 @@ void literal()
 
 void term()
 {
+    if (accept(not)) {
+        expect(lparen);
+        term();
+        expect(rparen);
+        return;
+    }
+
     literal();
     if (accept(and)) {
-        debug_print(("AND\n"));
+        //debug_print(("AND\n"));
         if (accept(lparen)) {
             if (accept(not)) {
                 term();
@@ -163,16 +183,22 @@ void term()
 
 void start()
 {
+    nextsym(); // initialize the stream of symbols
     expect(lparen);
     term();
     expect(rparen);
+    expect(end);
 }
 
-int main()
+int parse(char * in)
 {
-    nextsym(); // initialize the stream of symbols
+    input = in;
+    cursor = in;
     start();
-    
-    debug_print(("Parsed!\n"));
-    return 0;
+    if (error) {
+        return 1;
+    }
+    else {  
+        return 0;
+    }
 }

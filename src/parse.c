@@ -4,6 +4,13 @@
 
 #include<stdio.h>
 
+#ifdef DEBUG
+#define debug_print(s) printf s ;
+#else
+#define debug_print(s) do { } while (0);
+#endif
+
+
 enum Symbol {lparen, rparen, variable, and, or, not};
 char * sym_name[] = {"lparen", "rparen", "variable", "and", "or", "not"};
 char variable_name[256] = {'\0'};
@@ -17,12 +24,19 @@ char next_token[256] = {'\0'};
 int count = 0;
 enum Symbol tokens[] = {lparen, not, variable, and, lparen, variable, or, variable, rparen, rparen};
 
+void skip_whitespace()
+{
+    
+    while (*cursor == ' ') {
+        cursor++;
+    }
+}
 void nextsym()
 {
-    printf("Input is %s\n", cursor);
+    debug_print(("Input is %s\n", cursor));
     // Make sure the cursor is not NULL/at the end of the string
     if (*cursor == '\0') {
-        printf("Error in parsing\n");
+        debug_print(("Error in parsing\n"));
     }
 
     if (*cursor == '(') {
@@ -59,17 +73,12 @@ void nextsym()
         variable_name[idx] = '\0';
         //printf("Variable name %s\n", variable_name);
     }
+    skip_whitespace();
 
-    printf("Symbol is %s\n", sym_name[sym]);
+    debug_print(("Symbol is %s\n", sym_name[sym]));
     if (sym == variable) {
-        printf("Variable name %s\n", variable_name);
+        debug_print(("Variable name %s\n", variable_name));
     }
-    
-
-    //sym = tokens[count];
-    //printf("Sym is %s\n", sym_name[sym]);
-    //count++;
-    /* Get the next token and put into next_token */
 }
 
 /*
@@ -90,7 +99,7 @@ int expect(enum Symbol esym)
     if (accept(esym)) {
         return 1;
     }
-    printf("Error\n");
+    debug_print(("Error\n"));
     return 0;
     
 }
@@ -102,7 +111,7 @@ void connective()
     else if (accept(or))
        ;
     else {
-        printf("Error\n");
+        debug_print(("Error\n"));
     }
 }
 
@@ -110,7 +119,7 @@ void connective()
 void literal()
 {
     if (accept(not)) {
-        printf("Negation\n");
+        debug_print(("Negation\n"));
         expect(variable);
     }
     else {
@@ -122,7 +131,7 @@ void term()
 {
     literal();
     if (accept(and)) {
-        printf("AND\n");
+        debug_print(("AND\n"));
         if (accept(lparen)) {
             if (accept(not)) {
                 term();
@@ -164,6 +173,6 @@ int main()
     nextsym(); // initialize the stream of symbols
     start();
     
-    printf("Parsed!\n");
+    debug_print(("Parsed!\n"));
     return 0;
 }

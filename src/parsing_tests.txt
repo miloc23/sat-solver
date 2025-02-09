@@ -1,0 +1,15 @@
+(X)
+0
+Tests a single literal.
+Y
+1
+Tests a single literal without parens.
+(X AND Y)
+0
+Tests a conjunction of X and Y.
+(NOT (X AND Y))
+0
+Tests a negation of a conjunction.
+((NOT X))
+0
+Tests negating a literal.

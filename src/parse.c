@@ -42,12 +42,6 @@ bool nextsym()
     // Make sure the cursor is not NULL/at the end of the string
     if (*cursor == '\0') {
         sym = end;
-        //if (end_of_stream) {
-        //    error = true;
-        //}
-        //else {
-        //    end_of_stream = true;
-        //}
     }
     else if (*cursor == '(') {
         sym = lparen;
@@ -72,11 +66,13 @@ bool nextsym()
     else {
         sym = variable;
         int idx = 0;
-        while (*cursor != ' ' && *cursor != ')') {
+        while (*cursor != ' ' && *cursor != ')' && *cursor != '\0') {
             variable_name[idx] = *cursor;
             cursor++;
             idx++;
         }
+        //if (*cursor == '\0') {
+
         if (*cursor != ')') {
             cursor++;
         }
@@ -192,6 +188,8 @@ void start()
 
 int parse(char * in)
 {
+    error = false;
+    sym = startsym;
     input = in;
     cursor = in;
     start();
